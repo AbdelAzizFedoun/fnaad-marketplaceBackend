@@ -126,6 +126,8 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # (see .env.example). No code change is needed to switch engines.
 
 # Database configuration
+
+import os
 import dj_database_url
 
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -134,7 +136,7 @@ if DATABASE_URL:
     DATABASES = {
         "default": dj_database_url.parse(
             DATABASE_URL,
-            conn_max_age=600,
+            conn_max_age=60,
             ssl_require=True,
         )
     }
@@ -161,11 +163,8 @@ else:
     else:
         DATABASES = {
             "default": {
-                "ENGINE": DB_ENGINE,
-                "NAME": os.getenv(
-                    "DB_NAME",
-                    str(BASE_DIR / "db.sqlite3"),
-                ),
+                "ENGINE": "django.db.backends.sqlite3",
+                "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
             }
         }
 
