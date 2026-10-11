@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ product.title }} — FNAAD</title>
+
+  <meta property="og:title" content="{{ product.title }} — {{ product.artist.brand_name }}" />
+  <meta property="og:description" content="{{ product.price_xaf }} XAF — Discover this artwork on FNAAD" />
+  {% if image_url %}
+  <meta property="og:image" content="{{ image_url }}" />
+  {% endif %}
+  <meta property="og:type" content="product" />
+  <meta property="og:url" content="{{ product.public_url }}" />
+
+  <style>
+    body {
+      background: #0B0A0C; color: #F0ECE4; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      margin: 0; display: flex; flex-direction: column; align-items: center;
+    }
+    .image-wrap { width: 100%; max-width: 480px; display: grid; gap: 3px; }
+    img.hero { width: 100%; display: block; max-height: 520px; object-fit: cover; }
+    .content { width: 100%; max-width: 480px; padding: 20px; box-sizing: border-box; }
+    h1 { color: #F0ECE4; font-size: 22px; margin: 0 0 4px; font-weight: 700; }
+    p.category { color: #C9A24B; font-size: 11px; text-transform: uppercase; margin: 0 0 12px; letter-spacing: 0.5px; font-weight: 600; }
+    .artist-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+    .artist-avatar {
+      width: 32px; height: 32px; border-radius: 16px; border: 2px solid #C9A24B;
+      background: #1A1720; object-fit: cover;
+    }
+    p.artist { color: #9C979E; font-size: 14px; margin: 0; font-weight: 500; }
+    .verified { color: #5FA779; font-size: 12px; font-weight: 600; }
+    p.price { color: #E7C878; font-size: 20px; font-weight: 700; margin: 12px 0; }
+    p.description { color: #B7B2B8; font-size: 14px; line-height: 20px; margin: 16px 0; }
+    .cta {
+      display: block; text-align: center; margin-top: 14px; border-radius: 8px;
+      padding: 14px; text-decoration: none; font-weight: 700; font-size: 14px;
+    }
+    .cta-app { background: #C9A24B; color: #1A1508; }
+    .cta-home { background: #2A272D; color: #F0ECE4; }
+    .sold-badge {
+      display: inline-block; background: #B0524F; color: #F0ECE4; font-size: 11px;
+      font-weight: 700; text-transform: uppercase; padding: 4px 10px; border-radius: 6px; margin-bottom: 10px;
+    }
+    .details { border-top: 1px solid #2A272D; margin-top: 18px; padding-top: 14px; }
+    .detail-row { display: flex; justify-content: space-between; gap: 16px; padding: 7px 0; color: #B7B2B8; font-size: 13px; }
+    .detail-label { color: #9C979E; }
+    .detail-value { color: #F0ECE4; text-align: right; }
+  </style>
+</head>
+<body>
+  <div class="image-wrap">
+    {% for image in product_images %}
+      <img class="hero" src="{{ image }}" alt="{{ product.title }}" />
+    {% empty %}
+      <div style="height: 160px; background: #1A1720;"></div>
+    {% endfor %}
+  </div>
+
+  <div class="content">
+    {% if product.is_sold %}<span class="sold-badge">Sold</span>{% endif %}
+    <h1>{{ product.title }}</h1>
+    <p class="category">{{ product.get_category_display }}</p>
+
+    <div class="artist-row">
+      {% if product.artist.avatar %}
+        <img class="artist-avatar" src="{{ product.artist.avatar.url }}" alt="{{ product.artist.brand_name }}" />
+      {% endif %}
+      <p class="artist">
+        {{ product.artist.brand_name }}
+        {% if product.artist.is_verified %}<span class="verified">✓ Verified</span>{% endif %}
+      </p>
+    </div>
+
+    <p class="price">{{ product.price_xaf }} XAF</p>
+
+    {% if product.description %}
+    <p class="description">{{ product.description }}</p>
+    {% endif %}
+
+    <div class="details">
+      <div class="detail-row"><span class="detail-label">Reference</span><span class="detail-value">{{ product.public_slug }}</span></div>
+      <div class="detail-row"><span class="detail-label">Category</span><span class="detail-value">{{ product.get_category_display }}</span></div>
+      <div class="detail-row"><span class="detail-label">Artist</span><span class="detail-value">{{ product.artist.brand_name }}</span></div>
+      <div class="detail-row"><span class="detail-label">Published on</span><span class="detail-value">{{ product.created_at|date:"d/m/Y" }}</span></div>
+      <div class="detail-row"><span class="detail-label">Status</span><span class="detail-value">{% if product.is_sold %}Sold{% else %}Available{% endif %}</span></div>
+    </div>
+
+    <a class="cta cta-app" href="fnaad://product/{{ product.id }}">View on FNAAD App</a>
+    <a class="cta cta-home" href="fnaad://">FNAAD Home</a>
+  </div>
+</body>
+</html>
