@@ -125,27 +125,22 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # DB_ENGINE=django.db.backends.postgresql plus the DB_* variables in .env
 # (see .env.example). No code change is needed to switch engines.
 
-# Database configuration
-
-import os
 import dj_database_url
 
 DATABASE_URL = os.getenv("DATABASE_URL")
+DB_ENGINE = os.getenv("DB_ENGINE", "django.db.backends.sqlite3")
 
 if DATABASE_URL:
-    DATABASES = {
-        "default": dj_database_url.parse(
-            DATABASE_URL,
-            conn_max_age=60,
-            ssl_require=True,
-        )
-    }
-else:
-    DB_ENGINE = os.getenv(
-        "DB_ENGINE",
-        "django.db.backends.sqlite3",
+    db_config = dj_database_url.parse(
+        DATABASE_URL,
+        conn_max_age=60,
+        ssl_require=True,
     )
-
+    engine = db_config.get("ENGINE") or db_config.get("ENGINE", "")
+    if engine:
+        DB_ENGINE = engine
+    DATABASES = {"default": db_config}
+else:
     if DB_ENGINE == "django.db.backends.postgresql":
         DATABASES = {
             "default": {
@@ -163,33 +158,10 @@ else:
     else:
         DATABASES = {
             "default": {
-                "ENGINE": "django.db.backends.sqlite3",
-                "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
+                "ENGINE": DB_ENGINE,
+                "NAME": os.getenv("DB_NAME", str(BASE_DIR / "db.sqlite3")),
             }
         }
-
-
-if DB_ENGINE == "django.db.backends.postgresql":
-    DATABASES = {
-        "default": {
-            "ENGINE": DB_ENGINE,
-            "NAME": os.getenv("DB_NAME", "fnaad"),
-            "USER": os.getenv("DB_USER", "fnaad"),
-            "PASSWORD": os.getenv("DB_PASSWORD", ""),
-            "HOST": os.getenv("DB_HOST", "localhost"),
-            "PORT": os.getenv("DB_PORT", "5432"),
-            # Keep connections open between requests — PostgreSQL prefers
-            # this over reconnecting on every API call.
-            "CONN_MAX_AGE": int(os.getenv("DB_CONN_MAX_AGE", "60")),
-        }
-    }
-else:
-    DATABASES = {
-        "default": {
-            "ENGINE": DB_ENGINE,
-            "NAME": os.getenv("DB_NAME", str(BASE_DIR / "db.sqlite3")),
-        }
-    }
 
 
 # Password validation
