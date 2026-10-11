@@ -53,11 +53,14 @@ SECRET_KEY = os.getenv(
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG", "true").lower() in {"1", "true", "yes"}
+DEBUG = os.getenv("DEBUG", "false").lower() in {"1", "true", "yes"}
 
 ALLOWED_HOSTS = [
     host.strip()
-    for host in os.getenv("ALLOWED_HOSTS", "*").split(",")
+    for host in os.getenv(
+        "ALLOWED_HOSTS",
+        "localhost,127.0.0.1"
+    ).split(",")
     if host.strip()
 ]
 
@@ -121,7 +124,51 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database — SQLite by default for local dev. Switch to PostgreSQL by setting
 # DB_ENGINE=django.db.backends.postgresql plus the DB_* variables in .env
 # (see .env.example). No code change is needed to switch engines.
-DB_ENGINE = os.getenv("DB_ENGINE", "django.db.backends.sqlite3")
+
+# Database configuration
+import dj_database_url
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if DATABASE_URL:
+    DATABASES = {
+        "default": dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=True,
+        )
+    }
+else:
+    DB_ENGINE = os.getenv(
+        "DB_ENGINE",
+        "django.db.backends.sqlite3",
+    )
+
+    if DB_ENGINE == "django.db.backends.postgresql":
+        DATABASES = {
+            "default": {
+                "ENGINE": DB_ENGINE,
+                "NAME": os.getenv("DB_NAME", "fnaad"),
+                "USER": os.getenv("DB_USER", "fnaad"),
+                "PASSWORD": os.getenv("DB_PASSWORD", ""),
+                "HOST": os.getenv("DB_HOST", "localhost"),
+                "PORT": os.getenv("DB_PORT", "5432"),
+                "CONN_MAX_AGE": int(
+                    os.getenv("DB_CONN_MAX_AGE", "60")
+                ),
+            }
+        }
+    else:
+        DATABASES = {
+            "default": {
+                "ENGINE": DB_ENGINE,
+                "NAME": os.getenv(
+                    "DB_NAME",
+                    str(BASE_DIR / "db.sqlite3"),
+                ),
+            }
+        }
+
 
 if DB_ENGINE == "django.db.backends.postgresql":
     DATABASES = {
@@ -237,7 +284,10 @@ AUTH_USER_MODEL = 'accounts.User'
 # CORS — allows React Native / Expo to call this API during development.
 # Set CORS_ALLOW_ALL_ORIGINS=false and CORS_ALLOWED_ORIGINS to a
 # comma list before going live.
-CORS_ALLOW_ALL_ORIGINS = os.getenv("CORS_ALLOW_ALL_ORIGINS", "true").lower() in {"1", "true", "yes"}
+CORS_ALLOW_ALL_ORIGINS = os.getenv(
+    "CORS_ALLOW_ALL_ORIGINS",
+    "false"
+).lower() in {"1", "true", "yes"}
 CORS_ALLOWED_ORIGINS = [
     origin.strip()
     for origin in os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
@@ -250,11 +300,16 @@ CORS_ALLOWED_ORIGINS = [
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 
+
 CSRF_TRUSTED_ORIGINS = [
-    'https://2527-51-178-86-160.ngrok-free.app',
-    'http://localhost:8000',
-    os.getenv('SITE_BASE_URL', 'https://2527-51-178-86-160.ngrok-free.app'),
+    origin.strip()
+    for origin in os.getenv(
+        "CSRF_TRUSTED_ORIGINS",
+        "http://localhost:8000,http://127.0.0.1:8000"
+    ).split(",")
+    if origin.strip()
 ]
+
 
 CORS_ALLOW_HEADERS = [
     "accept",
@@ -274,7 +329,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Base URL used to build shareable public links (product pages, etc).
 # Update this to your real domain once you have one — everything else
 # that builds share links reads from here, nothing else needs to change.
-SITE_BASE_URL = os.getenv("SITE_BASE_URL", "https://2527-51-178-86-160.ngrok-free.app")
+SITE_BASE_URL = os.getenv("SITE_BASE_URL", "http://localhost:8000")
 
 # CamPay secrets stay on the server; never copy them into the Expo app.
 # They are read from the environment only — they were once hardcoded
