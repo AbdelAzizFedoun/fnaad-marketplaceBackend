@@ -252,25 +252,28 @@ SIMPLE_JWT = {
 # Custom user model (our accounts app, not Django's default)
 AUTH_USER_MODEL = 'accounts.User'
 
-# CORS — allows React Native / Expo to call this API during development.
-# Set CORS_ALLOW_ALL_ORIGINS=false and CORS_ALLOWED_ORIGINS to a
-# comma list before going live.
+# CORS — allows Web Admin panel and React Native / Expo to call this API.
 CORS_ALLOW_ALL_ORIGINS = os.getenv(
     "CORS_ALLOW_ALL_ORIGINS",
-    "false"
+    "true",
 ).lower() in {"1", "true", "yes"}
 CORS_ALLOWED_ORIGINS = [
     origin.strip()
     for origin in os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
     if origin.strip()
 ]
+for _origin in [
+    "https://fnaad-admin.onrender.com",
+    "http://localhost:5173",
+    "http://localhost:3000",
+]:
+    if _origin not in CORS_ALLOWED_ORIGINS:
+        CORS_ALLOWED_ORIGINS.append(_origin)
 
-# Tell Django the request is HTTPS when behind a reverse proxy (ngrok).
+# Tell Django the request is HTTPS when behind a reverse proxy (ngrok / Render).
 # Without this, build_absolute_uri() produces http:// links that browsers
-# block as mixed content on the https:// ngrok tunnel.
+# block as mixed content.
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-
-
 
 CSRF_TRUSTED_ORIGINS = [
     origin.strip()
@@ -280,6 +283,13 @@ CSRF_TRUSTED_ORIGINS = [
     ).split(",")
     if origin.strip()
 ]
+for _csrf in [
+    "https://fnaad-admin.onrender.com",
+    "https://fnaad-marketplace-api.onrender.com",
+]:
+    if _csrf not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(_csrf)
+
 
 
 CORS_ALLOW_HEADERS = [
